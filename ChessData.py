@@ -1,0 +1,50 @@
+class BoardState:
+    def __init__(self,board,turn,castle,lastmove):
+        self.board=[row [:] for row in board]
+        self.turn=turn
+        self.castle=castle
+        self.lastmove=lastmove
+MoveSet={
+    'k':([1,0,-1,-1,-1,0,1,1],[1,1,1,0,-1,-1,-1,0]),
+    'q':([7,0,-7,-7,-7,0,7,7],[7,7,7,0,-7,-7,-7,0]),
+    'b':([7,-7,-7,7],[-7,-7,7,7]),
+    'n':([2,1,-1,-2,-2,-1,1,2],[1,2,2,1,-1,-2,-2,-1]),
+    'r':([7,0,-7,0],[0,7,0,-7]),
+    'p':([1],[0]),
+    'K':([1,0,-1,-1,-1,0,1,1],[1,1,1,0,-1,-1,-1,0]),
+    'Q':([7,0,-7,-7,-7,0,7,7],[7,7,7,0,-7,-7,-7,0]),
+    'B':([7,-7,-7,7],[-7,-7,7,7]),
+    'N':([2,1,-1,-2,-2,-1,1,2],[1,2,2,1,-1,-2,-2,-1]),
+    'R':([7,0,-7,0],[0,7,0,-7]),
+    'P':([-1],[0]),
+    '.':([],[])
+}
+ChessImage={
+    'k':"Icon/BLKKing.png",
+    'q':"Icon/BLKQueen.png",
+    'b':"Icon/BLKBishop.png",
+    'n':"Icon/BLKKnight.png",
+    'r':"Icon/BLKRook.png",
+    'p':"Icon/BLKPawn.png",
+    'K':"Icon/WHTKing.png",
+    'Q':"Icon/WHTQueen.png",
+    'B':"Icon/WHTBishop.png",
+    'N':"Icon/WHTKnight.png",
+    'R':"Icon/WHTRook.png",
+    'P':"Icon/WHTPawn.png",
+    '.':None
+}
+Col=('a','b','c','d','e','f','g','h')
+Row=('8','7','6','5','4','3','2','1')
+Piece=(('K','Q','R','B','N','P'),('k','q','r','b','n','p'))
+Board=[
+    ['r','n','b','q','k','b','n','r'],
+    ['p','p','p','p','p','p','p','p'],
+    ['.','.','.','.','.','.','.','.'],
+    ['.','.','.','.','.','.','.','.'],
+    ['.','.','.','.','.','.','.','.'],
+    ['.','.','.','.','.','.','.','.'],
+    ['P','P','P','P','P','P','P','P'],
+    ['R','N','B','Q','K','B','N','R']
+]
+InitialBoard=BoardState(Board,0,15,None)
