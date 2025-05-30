@@ -1,8 +1,10 @@
 from AISupportFunc import FENToBS,BSToFEN,ChessMove,MakeMove,UnmakeMove
 from AIData import Piece,Col,Row,PieceValue,PositionValue
-import random,math
+import random,math,time,heapq
 depth=3
 MemList={}
+Now=0
+TimeLim=10
 def PosibleMove(PlayingBoard):
     Board=PlayingBoard.board
     Turn=PlayingBoard.turn
@@ -16,7 +18,8 @@ def PosibleMove(PlayingBoard):
                     PosMove.append(((i,j),Move))
     return PosMove
 def AIMove(FENCode):
-    global MemList
+    global MemList,Now
+    Now=time.time()
     (PlayingBoard,MoveCount,TurnCount)=FENToBS(FENCode)
     PosMove=PosibleMove(PlayingBoard)
     FENPart=FENCode.split(' ',6)
@@ -31,6 +34,7 @@ def AIMove(FENCode):
     if PlayingBoard.turn==0:Maximize(PlayingBoard,0,Evalue,FENTrim,int(TurnCount),-math.inf,math.inf)
     else: Minimize(PlayingBoard,0,Evalue,FENTrim,int(TurnCount),-math.inf,math.inf)
     #for elem in MemList:print(MemList[elem])
+    print(f"Response time: {time.time()-Now}")
     if MemList[FENTrim][0]!=((8,8),(8,8)):
         return MemList[FENTrim][0]
     else:
@@ -44,10 +48,11 @@ def Maximize(PlayingBoard,SearchDepth,EvalueScore,FENTrim,TurnCount,alpha,beta):
     PosMove=PosibleMove(PlayingBoard)
     if not PosMove:
         return -10000
-    if SearchDepth==depth:
+    if SearchDepth>=depth:
         MemList[FENTrim]=(random.choice(PosMove),EvalueScore)
         return EvalueScore
     Response=(((8,8),(8,8)),alpha)
+    MoveRating=[]
     for Move in PosMove:
         MoveMade=MakeMove(PlayingBoard,Move[0],Move[1])
         Evalue=EvaluateBoard(PlayingBoard,TurnCount)
@@ -57,6 +62,12 @@ def Maximize(PlayingBoard,SearchDepth,EvalueScore,FENTrim,TurnCount,alpha,beta):
             UnmakeMove(PlayingBoard,Move[1],Move[0],MoveMade)
             continue
         #print(f"{Str}Keep going")
+        heapq.heappush(MoveRating,(-Evalue,Move))
+        UnmakeMove(PlayingBoard,Move[1],Move[0],MoveMade)
+    while MoveRating:
+        (Evalue,Move)=heapq.heappop(MoveRating)
+        Evalue=-Evalue
+        MoveMade=MakeMove(PlayingBoard,Move[0],Move[1])
         NextFENTrim=BSToFEN(PlayingBoard,0,TurnCount)
         NextFENPart=NextFENTrim.split(' ',6)
         NextFENTrim=' '.join(NextFENPart[:4])
@@ -75,10 +86,11 @@ def Minimize(PlayingBoard,SearchDepth,EvalueScore,FENTrim,TurnCount,alpha,beta):
     PosMove=PosibleMove(PlayingBoard)
     if not PosMove:
         return 10000
-    if SearchDepth==depth:
+    if SearchDepth>=depth:
         MemList[FENTrim]=(random.choice(PosMove),EvalueScore)
         return EvalueScore
     Response=(((8,8),(8,8)),beta)
+    MoveRating=[]
     for Move in PosMove:
         MoveMade=MakeMove(PlayingBoard,Move[0],Move[1])
         Evalue=EvaluateBoard(PlayingBoard,TurnCount)
@@ -88,6 +100,11 @@ def Minimize(PlayingBoard,SearchDepth,EvalueScore,FENTrim,TurnCount,alpha,beta):
             UnmakeMove(PlayingBoard,Move[1],Move[0],MoveMade)
             continue
         #print(f"{Str}Keep going")
+        heapq.heappush(MoveRating,(Evalue,Move))
+        UnmakeMove(PlayingBoard,Move[1],Move[0],MoveMade)
+    while MoveRating:
+        (Evalue,Move)=heapq.heappop(MoveRating)
+        MoveMade=MakeMove(PlayingBoard,Move[0],Move[1])
         NextFENTrim=BSToFEN(PlayingBoard,1,TurnCount)
         NextFENPart=NextFENTrim.split(' ',6)
         NextFENTrim=' '.join(NextFENPart[:4])
