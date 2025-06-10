@@ -1,22 +1,10 @@
-from AISupportFunc import FENToBS,BSToFEN,ChessMove,MakeMove,UnmakeMove
+from AISupportFunc import FENToBS,BSToFEN,ChessMove,MakeMove,UnmakeMove,PosibleMove,PressureBoard
 from AIData import Piece,Col,Row,PieceValue,PositionValue
 import random,math,time,heapq
 depth=3
 MemList={}
 Now=0
 TimeLim=10
-def PosibleMove(PlayingBoard):
-    Board=PlayingBoard.board
-    Turn=PlayingBoard.turn
-    Castle=PlayingBoard.castle
-    PosMove=[]
-    for i in range(8):
-        for j in range(8):
-            if Board[i][j] in Piece[Turn]:
-                (Movable,Takable)=ChessMove(Board[i][j],(i,j),PlayingBoard,True)
-                for Move in Movable+Takable:
-                    PosMove.append(((i,j),Move))
-    return PosMove
 def AIMove(FENCode):
     global MemList,Now
     Now=time.time()
@@ -121,9 +109,11 @@ def EvaluateBoard(PlayingBoard,TurnCount):
     for i in range(8):
         for j in range(8):
             if Board[i][j]=='.':continue
-            if TurnCount<=15:TurnCount=0
-            elif TurnCount<=40:TurnCount=1
+            if TurnCount<=10:TurnCount=0
+            elif TurnCount<=30:TurnCount=1
             else:TurnCount=2
+            #PresBoard=[[[0,0] for _ in range(8)] for _ in range(8)]
+            #PressureBoard(PresBoard,Board,None)
             PositionMap=PositionValue[TurnCount][Board[i][j]]
             if Board[i][j] in Piece[1]:
                 Score=Score+PieceValue[Board[i][j]]-PositionMap[7-i][j]

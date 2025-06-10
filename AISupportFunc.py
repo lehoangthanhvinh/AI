@@ -1,5 +1,5 @@
-from AIData import BoardState,Col,Row,Piece,MoveSet
-import copy
+from AIData import BoardState,Col,Row,Piece,MoveSet,Pressure,CheckBoard,TracingRay,CrossRay,PlusRay
+import copy,time
 def FENToBS(FENCode):
     [BoardCode,Turn,CastleCode,EnPassant,MoveCount,TurnCount]=FENCode.split(" ",6)
     Board=[['.' for _ in range(8)] for _ in range(8)]
@@ -189,6 +189,18 @@ def ChessMove(PieceID,Pos,PlayingBoard,Called):
                 EvalBoard.board[x][y]='.'
                 if CheckLegal(EvalBoard)!=0: Movable.remove(MkMove)
     return (Movable,Takable)
+def PosibleMove(PlayingBoard):
+    Board=PlayingBoard.board
+    Turn=PlayingBoard.turn
+    Castle=PlayingBoard.castle
+    PosMove=[]
+    for i in range(8):
+        for j in range(8):
+            if Board[i][j] in Piece[Turn]:
+                (Movable,Takable)=ChessMove(Board[i][j],(i,j),PlayingBoard,True)
+                for Move in Movable+Takable:
+                    PosMove.append(((i,j),Move))
+    return PosMove
 def MakeMove(PlayingBoard,FromHere,ToThere):
     Board=PlayingBoard.board
     PieceCaptured=Board[ToThere[0]][ToThere[1]]
@@ -229,17 +241,47 @@ def UnmakeMove(PlayingBoard,FromHere,ToThere,MoveCode):
     Board[ToThere[0]][ToThere[1]]=Board[FromHere[0]][FromHere[1]]
     Board[FromHere[0]][FromHere[1]]=PieceCaptured
     PlayingBoard.turn=1-PlayingBoard.turn
-
-#Board=[
-#    ['r','n','b','q','k','b','n','r'],
-#    ['p','p','p','.','P','p','p','p'],
-#    ['.','.','.','.','.','.','.','.'],
-#    ['.','.','.','.','.','.','.','.'],
-#    ['.','.','.','.','P','.','.','.'],
-#    ['.','.','.','.','.','Q','.','.'],
-#    ['P','P','P','P','.','p','P','P'],
-#    ['R','N','B','.','K','B','N','R']
-#]
+def PressureBoard(PresBoard,Board,AfterBoard):
+    Now=time.time()
+    if AfterBoard is None:
+        for i in range(8):
+            for j in range(8):
+                PieceID=Board[i][j]
+                if PieceID=='.':continue
+                if PieceID in ('K','k','N','n','P','p'):
+                    CheckRule=CheckBoard[PieceID]
+                else:
+                    CheckRule=TracingRay[PieceID]
+                CheckPress(PresBoard,PieceID,(i,j),CheckRule,1)
+    else:
+        pass
+    #for row in PresBoard:print(row)
+    #print(time.time()-Now)
+def CheckPress(PresBoard,PieceID,Position,Rule,PlusValue):
+    Side=(PieceID==PieceID.lower())
+    if PieceID in ('K','k','N','n','P','p'):
+        for i in range(5):
+            for j in range(5):
+                if InRange(Position[0]+i-2,Position[1]+j-2) and Rule[i][j]:
+                    PresBoard[Position[0]+i-2][Position[1]+j-2][Side]+=Pressure[PieceID]*PlusValue
+    else:
+        for Dir in Rule:
+            for i in range(1,8):
+                if InRange(Position[0]+Dir[0]*i,Position[1]+Dir[1]*i):
+                    PresBoard[Position[0]+Dir[0]*i][Position[1]+Dir[1]*i][Side]+=Pressure[PieceID]*PlusValue
+                    if Board[Position[0]+Dir[0]*i][Position[1]+Dir[1]*i]!='.': break
+Board=[
+    ['r','.','.','.','.','r','k','.'],
+    ['p','b','p','p','.','p','p','.'],
+    ['.','p','n','.','.','q','.','p'],
+    ['b','.','.','.','p','.','.','.'],
+    ['.','.','B','.','P','.','.','.'],
+    ['P','.','N','P','.','N','.','.'],
+    ['.','P','P','.','.','P','P','P'],
+    ['R','.','.','Q','R','.','K','.']
+]
+PresBoard=[[[0,0] for _ in range(8)] for _ in range(8)]
+PressureBoard(PresBoard,Board,None)
 #TestBoard=BoardState(Board,1,15,None)
 #MoveCode=MakeMove(TestBoard,(5,5),(2,5))
 #for row in TestBoard.board: print(row)
